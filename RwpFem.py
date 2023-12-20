@@ -1,14 +1,83 @@
 import sys
 import numpy as np
 import scipy as sp
+import Quadratur as Q
 
 
 def LinElem(x0, x1, k, r, q, f, intyp):
-    return
+    hi = x1 - x0
+
+    def K_func(xi):
+        return [[k(F(xi))/hi**2 * dphi_lin1(xi) * dphi_lin1(xi)
+                 + r(F(xi))/hi * dphi_lin1(xi) * phi_lin1(xi)
+                 + q(F(xi))*phi_lin1(xi)*phi_lin1(xi),
+                 k(F(xi))/hi**2 * dphi_lin2(xi) * dphi_lin1(xi)
+                 + r(F(xi))/hi * dphi_lin2(xi) * phi_lin1(xi)
+                 + q(F(xi))*phi_lin2(xi)*phi_lin1(xi)],
+                [k(F(xi))/hi**2 * dphi_lin1(xi) * dphi_lin2(xi)
+                 + r(F(xi))/hi * dphi_lin1(xi) * phi_lin2(xi)
+                 + q(F(xi))*phi_lin1(xi)*phi_lin2(xi),
+                 k(F(xi))/hi**2 * dphi_lin2(xi) * dphi_lin2(xi)
+                 + r(F(xi))/hi * dphi_lin2(xi) * phi_lin2(xi)
+                 + q(F(xi))*phi_lin2(xi)*phi_lin2(xi)]]
+
+    def f_func(xi):
+        return [f(F(xi)) * phi_lin1(xi),
+                f(F(xi)) * phi_lin2(xi)]
+
+    if intyp == 0:
+        Ki = hi * sp.integrate.quad(K_func, 0, 1)
+        fi = hi * sp.integrate.quad(f_func, 0, 1)
+    else:
+        Ki = hi * Q.gauss(K_func, intyp)
+        fi = hi * Q.gauss(f_func, intyp)
+    return Ki, fi
 
 
 def QuadElem(x0, x1, k, r, q, f, intyp):
-    return
+    hi = x1 - x0
+
+    def K_func(xi):
+        return [[k(F(xi))/hi**2 * dphi_quad1(xi) * dphi_quad1(xi)
+                 + r(F(xi))/hi * dphi_quad1(xi) * phi_quad1(xi)
+                 + q(F(xi)) * phi_quad1(xi) * phi_quad1(xi),
+                 k(F(xi))/hi**2 * dphi_quad2(xi) * dphi_quad1(xi)
+                 + r(F(xi))/hi * dphi_quad2(xi) * phi_quad1(xi)
+                 + q(F(xi)) * phi_quad2(xi) * phi_quad1(xi),
+                 k(F(xi))/hi**2 * dphi_quad3(xi) * dphi_quad1(xi)
+                 + r(F(xi))/hi * dphi_quad3(xi) * phi_quad1(xi)
+                 + q(F(xi)) * phi_quad3(xi) * phi_quad1(xi)],
+                [k(F(xi))/hi**2 * dphi_quad1(xi) * dphi_quad2(xi)
+                 + r(F(xi))/hi * dphi_quad1(xi) * phi_quad2(xi)
+                 + q(F(xi)) * phi_quad1(xi) * phi_quad2(xi),
+                 k(F(xi))/hi**2 * dphi_quad2(xi) * dphi_quad2(xi)
+                 + r(F(xi))/hi * dphi_quad2(xi) * phi_quad2(xi)
+                 + q(F(xi)) * phi_quad2(xi) * phi_quad2(xi),
+                 k(F(xi))/hi**2 * dphi_quad3(xi) * dphi_quad2(xi)
+                 + r(F(xi))/hi * dphi_quad3(xi) * phi_quad2(xi)
+                 + q(F(xi)) * phi_quad3(xi) * phi_quad2(xi)],
+                [k(F(xi))/hi**2 * dphi_quad1(xi) * dphi_quad3(xi)
+                 + r(F(xi))/hi * dphi_quad1(xi) * phi_quad3(xi)
+                 + q(F(xi)) * phi_quad1(xi) * phi_quad3(xi),
+                 k(F(xi))/hi**2 * dphi_quad2(xi) * dphi_quad3(xi)
+                 + r(F(xi))/hi * dphi_quad2(xi) * phi_quad3(xi)
+                 + q(F(xi)) * phi_quad2(xi) * phi_quad3(xi),
+                 k(F(xi))/hi**2 * dphi_quad3(xi) * dphi_quad3(xi)
+                 + r(F(xi))/hi * dphi_quad3(xi) * phi_quad3(xi)
+                 + q(F(xi)) * phi_quad3(xi) * phi_quad3(xi)]]
+
+    def f_func(xi):
+        return [f(F(xi)) * phi_quad1(xi),
+                f(F(xi)) * phi_quad2(xi),
+                f(F(xi)) * phi_quad3(xi)]
+
+    if intyp == 0:
+        Ki = hi * sp.integrate.quad(K_func, 0, 1)
+        fi = hi * sp.integrate.quad(f_func, 0, 1)
+    else:
+        Ki = hi * Q.gauss(K_func, intyp)
+        fi = hi * Q.gauss(f_func, intyp)
+    return Ki, fi
 
 
 def Fehlersh():
@@ -53,3 +122,20 @@ def KnElGen(Me, eltyp, intyp):
         else:
             KnEl[i, 2:] = [2*i, 2*i+1, 2*i+2]
     return KnEl
+
+
+def F(xi, x0, x1): return (x1 - x0)*xi + x0
+
+
+def phi_lin1(xi): return 1 - xi
+def phi_lin2(xi): return xi
+def phi_quad1(xi): return (2*xi - 1)*(xi - 1)
+def phi_quad2(xi): return 4*xi*(1 - xi)
+def phi_quad3(xi): return xi*(2*xi - 1)
+
+
+def dphi_lin1(xi): return -1
+def dphi_lin2(xi): return 1
+def dphi_quad1(xi): return 4*xi - 3
+def dphi_quad2(xi): return 4 - 8*xi
+def dphi_quad3(xi): return 4*xi - 1
