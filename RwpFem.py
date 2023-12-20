@@ -95,9 +95,9 @@ def RwpFem1d(xGit, k, r, q, f, rba, rbb, eltyp, intyp):
     fh = np.zeros(Ng)
     for i in range(1, Me+1):
         if eltyp == 1:
-            Ki, fi = LinElem()
+            Ki, fi = LinElem(xKno[i], xKno[i+1], k, r, q, f, intyp)
         else:
-            Ki, fi = QuadElem()
+            Ki, fi = QuadElem(xKno[i], xKno[i+1], k, r, q, f, intyp)
         for j in range(1, eltyp+2):
             r = KnEl[i, j+1]
             fh[r] = fh[r] + fi[j]
