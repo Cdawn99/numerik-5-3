@@ -29,15 +29,22 @@ eltyp, intyp = 2, 3
 uw, xw = FEM.RwpFem1d(xGit, kco, rco, qco, fco, rba, rbb, eltyp, intyp)
 # Vergleich mit exakter Loesung in Knoten
 uexa = exa(xw)
+
 print(f"Ansatz: {eltyp}, QuadrTyp: {intyp}, Max.Fehler: {max(abs(uw - uexa))}")
 
 # Einfache Visualisierung
 fig = plt.figure()
-plt.plot(xw, uw, 'c', marker='P', label='Numerische Loesung')
-plt.plot(xw, uexa, 'm', label='Exakte Loesung')
-plt.grid(visible=True)
-plt.title("FEM - Bsp b")
-plt.xlabel("Ort x")
-plt.ylabel("Loesung u")
-plt.legend()
+
+ax1 = fig.add_subplot(121)
+ax1.plot(xw, uw, 'c', marker='P', label='Numerische Loesung')
+ax1.grid(visible=True)
+ax1.set(title="FEM - Bsp b", xlabel="Ort x", ylabel="Loesung u")
+ax1.legend()
+
+ax2 = fig.add_subplot(122)
+ax2.plot(xw, uexa, 'm', label='Exakte Loesung')
+ax2.grid(visible=True)
+ax2.set(title="FEM - Bsp b", xlabel="Ort x", ylabel="Loesung u")
+ax2.legend()
+
 plt.show()

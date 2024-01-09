@@ -14,7 +14,7 @@ gewichte = np.array([[1],
 def gauss(f, intyp):
     x = knoten[intyp - 1]
     w = gewichte[intyp - 1]
-    res = 0
-    for i in range(len(x)):
-        res = res + w[i]*f(x[i])
+    res = w[0]*f(x[0])
+    for i in range(1, len(x)):
+        res += w[i]*f(x[i])
     return res
