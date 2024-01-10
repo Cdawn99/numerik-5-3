@@ -11,7 +11,7 @@ def LinElem(x0, x1, k, r, q, f, intyp):
         return np.array(
                 [[k(F(xi, x0, x1))/hi**2 * dphi_lin1(xi) * dphi_lin1(xi)
                  + r(F(xi, x0, x1))/hi * dphi_lin1(xi) * phi_lin1(xi)
-                 + q(F(xi))*phi_lin1(xi)*phi_lin1(xi),
+                 + q(F(xi, x0, x1))*phi_lin1(xi)*phi_lin1(xi),
                  k(F(xi, x0, x1))/hi**2 * dphi_lin2(xi) * dphi_lin1(xi)
                  + r(F(xi, x0, x1))/hi * dphi_lin2(xi) * phi_lin1(xi)
                  + q(F(xi, x0, x1))*phi_lin2(xi)*phi_lin1(xi)],
@@ -30,8 +30,22 @@ def LinElem(x0, x1, k, r, q, f, intyp):
                 )
 
     if intyp == 0:
-        Ki = hi * sp.integrate.quad(K_func, 0, 1)
-        fi = hi * sp.integrate.quad(f_func, 0, 1)
+        Ki = np.zeros((2, 2))
+        fi = np.zeros(2)
+
+        def Kf00(xi): return K_func(xi)[0][0]
+        def Kf01(xi): return K_func(xi)[0][1]
+        def Kf10(xi): return K_func(xi)[1][0]
+        def Kf11(xi): return K_func(xi)[1][1]
+        def ff0(xi): return f_func(xi)[0]
+        def ff1(xi): return f_func(xi)[1]
+
+        Ki[0][0] = hi * sp.integrate.quad(Kf00, 0, 1)[0]
+        Ki[0][1] = hi * sp.integrate.quad(Kf01, 0, 1)[0]
+        Ki[1][0] = hi * sp.integrate.quad(Kf10, 0, 1)[0]
+        Ki[1][1] = hi * sp.integrate.quad(Kf11, 0, 1)[0]
+        fi[0] = hi * sp.integrate.quad(ff0, 0, 1)[0]
+        fi[1] = hi * sp.integrate.quad(ff1, 0, 1)[0]
     else:
         Ki = hi * Q.gauss(K_func, intyp)
         fi = hi * Q.gauss(f_func, intyp)
@@ -80,8 +94,34 @@ def QuadElem(x0, x1, k, r, q, f, intyp):
                 )
 
     if intyp == 0:
-        Ki = hi * sp.integrate.quad(K_func, 0, 1)
-        fi = hi * sp.integrate.quad(f_func, 0, 1)
+        Ki = np.zeros((3, 3))
+        fi = np.zeros(3)
+
+        def Kf00(xi): return K_func(xi)[0][0]
+        def Kf01(xi): return K_func(xi)[0][1]
+        def Kf02(xi): return K_func(xi)[0][2]
+        def Kf10(xi): return K_func(xi)[1][0]
+        def Kf11(xi): return K_func(xi)[1][1]
+        def Kf12(xi): return K_func(xi)[1][2]
+        def Kf20(xi): return K_func(xi)[2][0]
+        def Kf21(xi): return K_func(xi)[2][1]
+        def Kf22(xi): return K_func(xi)[2][2]
+        def ff0(xi): return f_func(xi)[0]
+        def ff1(xi): return f_func(xi)[1]
+        def ff2(xi): return f_func(xi)[2]
+
+        Ki[0][0] = hi * sp.integrate.quad(Kf00, 0, 1)[0]
+        Ki[0][1] = hi * sp.integrate.quad(Kf01, 0, 1)[0]
+        Ki[0][2] = hi * sp.integrate.quad(Kf02, 0, 1)[0]
+        Ki[1][0] = hi * sp.integrate.quad(Kf10, 0, 1)[0]
+        Ki[1][1] = hi * sp.integrate.quad(Kf11, 0, 1)[0]
+        Ki[1][2] = hi * sp.integrate.quad(Kf12, 0, 1)[0]
+        Ki[2][0] = hi * sp.integrate.quad(Kf20, 0, 1)[0]
+        Ki[2][1] = hi * sp.integrate.quad(Kf21, 0, 1)[0]
+        Ki[2][2] = hi * sp.integrate.quad(Kf22, 0, 1)[0]
+        fi[0] = hi * sp.integrate.quad(ff0, 0, 1)[0]
+        fi[1] = hi * sp.integrate.quad(ff1, 0, 1)[0]
+        fi[2] = hi * sp.integrate.quad(ff2, 0, 1)[0]
     else:
         Ki = hi * Q.gauss(K_func, intyp)
         fi = hi * Q.gauss(f_func, intyp)
@@ -114,28 +154,30 @@ def RwpFem1d(xGit, k, r, q, f, rba, rbb, eltyp, intyp):
                 Kh[v, s] = Kh[v, s] + Ki[j-1, l-1]
     typa, kapa, mua = rba
     typb, kapb, mub = rbb
-    if typa == 1:
+    if typa == 1:  # Dirichlet
         Kh[0] = 0
         fh[0] = 0
         fh = fh - np.matmul(Kh.toarray(), np.array([mua] + [0]*(Ng)))
+        Kh[:, 0] = 0
         Kh[0, 0] = 1
         fh[0] = mua
-    elif typa == 2:
+    elif typa == 2:  # Neumann
         fh[0] = fh[0] + mua
-    elif typa == 3:
+    elif typa == 3:  # Robin
         Kh[0, 0] = Kh[0, 0] + kapa
         fh[0] = fh[0] + mua
-    if typb == 1:
-        Kh[Ng - 1] = 0
-        fh[Ng - 1] = 0
+    if typb == 1:  # Dirichlet
+        Kh[Ng] = 0
+        fh[Ng] = 0
         fh = fh - np.matmul(Kh.toarray(), np.array([0]*(Ng) + [mub]))
-        Kh[Ng - 1, Ng - 1] = 1
-        fh[Ng - 1] = mub
-    elif typb == 2:
-        fh[Ng - 1] = fh[Ng - 1] + mub
-    elif typb == 3:
-        Kh[Ng - 1, Ng - 1] = Kh[Ng - 1, Ng - 1] + kapb
-        fh[Ng - 1] = fh[Ng - 1] + mub
+        Kh[:, Ng] = 0
+        Kh[Ng, Ng] = 1
+        fh[Ng] = mub
+    elif typb == 2:  # Neumann
+        fh[Ng] = fh[Ng] + mub
+    elif typb == 3:  # Robin
+        Kh[Ng, Ng] = Kh[Ng, Ng] + kapb
+        fh[Ng] = fh[Ng] + mub
     uKno = sp.sparse.linalg.spsolve(Kh, fh)
     return uKno, xKno
 
