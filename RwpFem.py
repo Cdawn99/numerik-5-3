@@ -137,7 +137,13 @@ def RwpFem1d(xGit, k, r, q, f, rba, rbb, eltyp, intyp):
         sys.exit(1)
     Me = len(xGit) - 1
     Ng = eltyp*Me
-    xKno = np.linspace(xGit[0], xGit[1], Ng+1)
+#     xKno = np.linspace(xGit[0], xGit[-1], Ng+1)  # ohne adaptivität
+    if eltyp == 1:
+        xKno = xGit.copy()
+    else:
+        xKno = np.zeros(Ng+1, dtype=float)
+        xKno[0:Ng+11:2] = xGit
+        xKno[1:Ng:2] = (xGit[0:Me:1] + xGit[1:Me+1:1])/2
     KnEl = KnElGen(Me, eltyp, intyp)
     Kh = sp.sparse.csc_matrix((Ng+1, Ng+1))
     fh = np.zeros(Ng+1)

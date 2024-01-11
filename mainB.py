@@ -35,16 +35,17 @@ print(f"Ansatz: {eltyp}, QuadrTyp: {intyp}, Max.Fehler: {max(abs(uw - uexa))}")
 # Einfache Visualisierung
 fig = plt.figure()
 
-ax1 = fig.add_subplot(121)
+ax1 = fig.add_subplot(111)
 ax1.plot(xw, uw, 'c', marker='P', label='Numerische Loesung')
+ax1.plot(xw, uexa, 'm', label='Exakte Loesung')
 ax1.grid(visible=True)
 ax1.set(title="FEM - Bsp b", xlabel="Ort x", ylabel="Loesung u")
 ax1.legend()
 
-ax2 = fig.add_subplot(122)
-ax2.plot(xw, uexa, 'm', label='Exakte Loesung')
-ax2.grid(visible=True)
-ax2.set(title="FEM - Bsp b", xlabel="Ort x", ylabel="Loesung u")
-ax2.legend()
+# ax2 = fig.add_subplot(122)
+# ax2.plot(xw, uexa, 'm', label='Exakte Loesung')
+# ax2.grid(visible=True)
+# ax2.set(title="FEM - Bsp b", xlabel="Ort x", ylabel="Loesung u")
+# ax2.legend()
 
 plt.show()
